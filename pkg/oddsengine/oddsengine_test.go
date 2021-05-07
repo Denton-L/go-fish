@@ -57,3 +57,18 @@ func TestGetRemainingCards(t *testing.T) {
 		}
 	}
 }
+
+func BenchmarkOddsEngineCalculate(b *testing.B) {
+	oe := OddsEngine{4, 1000000}
+	state := pkg.GameState{
+		Phase: pkg.PreFlop,
+		Hole:  pkg.Hole{pkg.Card{2, pkg.Heart}, pkg.Card{7, pkg.Spade}},
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if _, err := oe.Calculate(state); err != nil {
+			b.Error(err)
+		}
+	}
+}

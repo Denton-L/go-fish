@@ -1,20 +1,66 @@
 package pkg
 
-import (
-	"fmt"
-)
-
 const (
 	NumRanks = 13
 	NumSuits = 4
 	NumCards = NumRanks * NumSuits
-
-	LowAce = 1
-	Jack   = 11
-	Queen  = 12
-	King   = 13
-	Ace    = 14
 )
+
+type Rank int
+
+const (
+	NoRank Rank = 0
+	LowAce Rank = 1
+	Jack   Rank = 11
+	Queen  Rank = 12
+	King   Rank = 13
+	Ace    Rank = 14
+)
+
+func (r Rank) String() string {
+	switch r {
+	case LowAce, Ace:
+		return "A"
+	case King:
+		return "K"
+	case Queen:
+		return "Q"
+	case Jack:
+		return "J"
+	case 10:
+		return "T"
+	}
+
+	if r < 2 || r > 9 {
+		return "?"
+	}
+	return string(rune(r) + '0')
+}
+
+func StringToRank(s string) Rank {
+	if len(s) != 1 {
+		return NoRank
+	}
+
+	switch s[0] {
+	case 'A':
+		return Ace
+	case 'K':
+		return King
+	case 'Q':
+		return Queen
+	case 'J':
+		return Jack
+	case 'T':
+		return 10
+	}
+
+	if s[0] < '0' || s[0] > '9' {
+		return NoRank
+	}
+
+	return Rank(s[0] - '0')
+}
 
 type Suit int
 
@@ -61,60 +107,19 @@ func StringToSuit(s string) Suit {
 }
 
 type Card struct {
-	Rank int
+	Rank Rank
 	Suit Suit
 }
 
 func (c Card) String() string {
-	rank := '?'
-	switch c.Rank {
-	case LowAce, Ace:
-		rank = 'A'
-	case King:
-		rank = 'K'
-	case Queen:
-		rank = 'Q'
-	case Jack:
-		rank = 'J'
-	case 10:
-		rank = 'T'
-	default:
-		if 2 <= c.Rank && c.Rank <= 9 {
-			rank = rune(c.Rank) + '0'
-		}
-	}
-
-	return fmt.Sprint(rank, c.Suit)
+	return c.Rank.String() + c.Suit.String()
 }
 
 func StringToCard(s string) Card {
 	if len(s) != 2 {
 		return Card{}
 	}
-
-	c := Card{}
-
-	switch s[0] {
-	case 'A':
-		c.Rank = Ace
-	case 'K':
-		c.Rank = King
-	case 'Q':
-		c.Rank = Queen
-	case 'J':
-		c.Rank = Jack
-	case 'T':
-		c.Rank = 10
-	default:
-		if s[0] < '0' || s[0] > '9' {
-			return Card{}
-		}
-		c.Rank = int(s[0] - '0')
-	}
-
-	c.Suit = StringToSuit(string(s[1]))
-
-	return c
+	return Card{StringToRank(string(s[0])), StringToSuit(string(s[1]))}
 }
 
 func StringsToCards(s ...string) []Card {

@@ -59,13 +59,13 @@ func (a PokerHand) CompareTo(b PokerHand) int {
 	}
 	for i := range a.Hand {
 		if a.Hand[i].Rank != b.Hand[i].Rank {
-			return a.Hand[i].Rank - b.Hand[i].Rank
+			return int(a.Hand[i].Rank - b.Hand[i].Rank)
 		}
 	}
 	return 0
 }
 
-func checkStraight(getLength func() int, getRank func(index int) int) (bool, int) {
+func checkStraight(getLength func() int, getRank func(index int) pkg.Rank) (bool, int) {
 	firstRank := getRank(0)
 
 	length := getLength()
@@ -132,7 +132,7 @@ func ComputeHand(cards []pkg.Card) PokerHand {
 
 		hasStraightFlush, runStart := checkStraight(func() int {
 			return len(suit)
-		}, func(index int) int {
+		}, func(index int) pkg.Rank {
 			return suit[index].Rank
 		})
 
@@ -161,7 +161,7 @@ func ComputeHand(cards []pkg.Card) PokerHand {
 	if fiveCardRanking == NoHand {
 		hasStraight, runIndex := checkStraight(func() int {
 			return len(ranks)
-		}, func(index int) int {
+		}, func(index int) pkg.Rank {
 			return ranks[index][0].Rank
 		})
 
@@ -204,12 +204,12 @@ func ComputeHand(cards []pkg.Card) PokerHand {
 		handBacking = handBacking[:5]
 		copy(handBacking[0:3], histogram[3][0])
 
-		hist2Rank := 0
+		hist2Rank := pkg.Rank(pkg.NoRank)
 		if len(histogram[2]) >= 1 {
 			hist2Rank = histogram[2][0][0].Rank
 		}
 
-		hist3Rank := 0
+		hist3Rank := pkg.Rank(pkg.NoRank)
 		if len(histogram[3]) >= 2 {
 			hist3Rank = histogram[3][1][0].Rank
 		}

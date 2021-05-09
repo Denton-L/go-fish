@@ -8,10 +8,10 @@ import (
 
 func getRemainingCards(state pkg.GameState) pkg.Deck {
 	deck := pkg.Deck{}
-	for number := 1; number <= pkg.NumRanks; number++ {
+	for rank := pkg.Rank(1); rank <= pkg.NumRanks; rank++ {
 	cardLoop:
 		for suit := pkg.Suit(1); suit <= pkg.NumSuits; suit++ {
-			card := pkg.Card{number, suit}
+			card := pkg.Card{rank, suit}
 
 			switch state.Phase {
 			case pkg.Showdown, pkg.River:

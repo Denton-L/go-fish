@@ -1,5 +1,9 @@
 package pkg
 
+import (
+	"fmt"
+)
+
 const (
 	NumRanks = 13
 	NumSuits = 4
@@ -21,6 +25,40 @@ const (
 	Heart
 	Spade
 )
+
+func (s Suit) String() string {
+	switch s {
+	case Diamond:
+		return "D"
+	case Club:
+		return "C"
+	case Heart:
+		return "H"
+	case Spade:
+		return "S"
+	default:
+		return "?"
+	}
+}
+
+func StringToSuit(s string) Suit {
+	if len(s) != 1 {
+		return NoSuit
+	}
+
+	switch s[0] {
+	case 'D':
+		return Diamond
+	case 'C':
+		return Club
+	case 'H':
+		return Heart
+	case 'S':
+		return Spade
+	default:
+		return NoSuit
+	}
+}
 
 type Card struct {
 	Rank int
@@ -46,19 +84,7 @@ func (c Card) String() string {
 		}
 	}
 
-	suit := '?'
-	switch c.Suit {
-	case Diamond:
-		suit = 'D'
-	case Club:
-		suit = 'C'
-	case Heart:
-		suit = 'H'
-	case Spade:
-		suit = 'S'
-	}
-
-	return string(rank) + string(suit)
+	return fmt.Sprint(rank, c.Suit)
 }
 
 func StringToCard(s string) Card {
@@ -86,18 +112,7 @@ func StringToCard(s string) Card {
 		c.Rank = int(s[0] - '0')
 	}
 
-	switch s[1] {
-	case 'D':
-		c.Suit = Diamond
-	case 'C':
-		c.Suit = Club
-	case 'H':
-		c.Suit = Heart
-	case 'S':
-		c.Suit = Spade
-	default:
-		return Card{}
-	}
+	c.Suit = StringToSuit(string(s[1]))
 
 	return c
 }

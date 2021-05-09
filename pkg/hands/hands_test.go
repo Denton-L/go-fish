@@ -6,6 +6,39 @@ import (
 	"github.com/Denton-L/go-fish/pkg"
 )
 
+func TestPokerHandCompareTo(t *testing.T) {
+	tests := []struct {
+		cards1, cards2 []pkg.Card
+		result         int
+	}{
+		{
+			pkg.StringsToCards("8C", "2S", "3H", "AS", "KD", "7S", "5S"),
+			pkg.StringsToCards("8C", "2S", "3H", "AS", "KD", "7S", "4S"),
+			1,
+		},
+		{
+			pkg.StringsToCards("8C", "2S", "3H", "AS", "KD", "7S", "4S"),
+			pkg.StringsToCards("8C", "8D", "2S", "3H", "AS", "KD", "KS"),
+			-1,
+		},
+		{
+			pkg.StringsToCards("9H", "6S", "7S", "2D", "6H", "8C", "5H"),
+			pkg.StringsToCards("8H", "2H", "5H", "7D", "9S", "6S", "6C"),
+			0,
+		},
+	}
+
+	for tn, test := range tests {
+		hand1 := ComputeHand(test.cards1)
+		hand2 := ComputeHand(test.cards2)
+
+		comparison := hand1.CompareTo(hand2)
+		if test.result^comparison < 0 {
+			t.Error(tn, "incorrect CompareTo", "expected sign:", test.result, "actual:", comparison)
+		}
+	}
+}
+
 func TestComputeHand(t *testing.T) {
 	tests := []struct {
 		cards   []pkg.Card
@@ -91,6 +124,7 @@ func TestComputeHand(t *testing.T) {
 
 	for tn, test := range tests {
 		hand := ComputeHand(test.cards)
+
 		if hand.Ranking != test.ranking {
 			t.Error(tn, "incorrect ranking", "expected:", test.ranking, "actual:", hand.Ranking)
 		}

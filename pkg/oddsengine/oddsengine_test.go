@@ -7,16 +7,7 @@ import (
 )
 
 func TestGetRemainingCards(t *testing.T) {
-	missingCards := []pkg.Card{
-		pkg.Card{4, pkg.Club},
-		pkg.Card{pkg.King, pkg.Spade},
-		pkg.Card{pkg.Ace, pkg.Heart},
-		pkg.Card{8, pkg.Heart},
-		pkg.Card{9, pkg.Club},
-		pkg.Card{pkg.Ace, pkg.Club},
-		pkg.Card{pkg.King, pkg.Diamond},
-	}
-
+	missingCards := pkg.StringsToCards("4C", "KS", "AH", "8H", "9C", "AC", "KD")
 	tests := []struct {
 		phase  pkg.Phase
 		offset int
@@ -62,7 +53,7 @@ func BenchmarkOddsEngineCalculate(b *testing.B) {
 	oe := OddsEngine{4, 1000000}
 	state := pkg.GameState{
 		Phase: pkg.PreFlop,
-		Hole:  pkg.Hole{pkg.Card{2, pkg.Heart}, pkg.Card{7, pkg.Spade}},
+		Hole:  pkg.Hole{pkg.StringToCard("2H"), pkg.StringToCard("7S")},
 	}
 
 	b.ResetTimer()

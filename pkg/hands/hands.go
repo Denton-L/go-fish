@@ -65,33 +65,49 @@ func (a PokerHand) CompareTo(b PokerHand) int {
 	return 0
 }
 
-func checkStraight(getLength func() int, getRank func(index int) pkg.Rank) (bool, int) {
-	firstRank := getRank(0)
+func checkStraight(getLength func() int, getCard func(index int) pkg.Card) []pkg.Card {
+	firstCard := getCard(0)
 
 	length := getLength()
 	runLength := 1
-	lastRank := firstRank
-	for i := 1; i < length; i++ {
-		rank := getRank(i)
+	lastCard := firstCard
+	i := 0
+	for i = 1; i < length; i++ {
+		card := getCard(i)
 
-		if lastRank == rank+1 {
+		if lastCard.Rank == card.Rank+1 {
 			runLength++
 
 			if runLength == handSize {
-				return true, i - runLength + 1
+				break
 			}
 		} else {
 			runLength = 1
 		}
 
-		lastRank = rank
+		lastCard = card
 	}
 
-	if firstRank == pkg.Ace && lastRank == 2 && runLength == handSize-1 {
-		return true, -1
+	if runLength == handSize || firstCard.Rank == pkg.Ace && lastCard.Rank == 2 && runLength == handSize-1 {
+		straight := make([]pkg.Card, handSize)
+		runIndex := i - handSize
+		for j := range straight {
+			runIndex++
+
+			card := pkg.Card{}
+			if runIndex < length {
+				card = getCard(runIndex)
+			} else {
+				card = getCard(0)
+				card.Rank = pkg.LowAce
+			}
+
+			straight[j] = card
+		}
+		return straight
 	}
 
-	return false, 0
+	return nil
 }
 
 func ComputeHand(cards []pkg.Card) PokerHand {
@@ -130,63 +146,36 @@ func ComputeHand(cards []pkg.Card) PokerHand {
 			continue
 		}
 
-		hasStraightFlush, runStart := checkStraight(func() int {
+		straightFlush := checkStraight(func() int {
 			return len(suit)
-		}, func(index int) pkg.Rank {
-			return suit[index].Rank
+		}, func(index int) pkg.Card {
+			return suit[index]
 		})
 
-		if !hasStraightFlush {
-			fiveCardRanking = Flush
-			handBacking = handBacking[:handSize]
-			copy(handBacking, suit)
-			break
-		}
-
-		fiveCardRanking = StraightFlush
 		handBacking = handBacking[:handSize]
 
-		if runStart < 0 {
-			copy(handBacking, suit[len(suit)-handSize+1:])
-			lastCard := suit[0]
-			lastCard.Rank = pkg.LowAce
-			handBacking[len(handBacking)-1] = lastCard
+		if straightFlush != nil {
+			fiveCardRanking = StraightFlush
+			copy(handBacking, straightFlush)
 			break
 		}
 
-		copy(handBacking, suit[runStart:])
+		fiveCardRanking = Flush
+		copy(handBacking, suit)
 		break
 	}
 
 	if fiveCardRanking == NoHand {
-		hasStraight, runIndex := checkStraight(func() int {
+		straight := checkStraight(func() int {
 			return len(ranks)
-		}, func(index int) pkg.Rank {
-			return ranks[index][0].Rank
+		}, func(index int) pkg.Card {
+			return ranks[index][0]
 		})
 
-		if hasStraight {
+		if straight != nil {
 			fiveCardRanking = Straight
 			handBacking = handBacking[:handSize]
-
-			lowStraight := runIndex < 0
-			if runIndex < 0 {
-				runIndex = len(ranks) - handSize + 1
-			}
-
-			for i := range handBacking {
-				if runIndex >= len(ranks) {
-					break
-				}
-				handBacking[i] = ranks[runIndex][0]
-				runIndex++
-			}
-
-			if lowStraight {
-				lastCard := ranks[0][0]
-				lastCard.Rank = pkg.LowAce
-				handBacking[len(handBacking)-1] = lastCard
-			}
+			copy(handBacking, straight)
 		}
 	}
 

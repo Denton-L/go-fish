@@ -4,11 +4,12 @@ import (
 	"math/rand"
 
 	"github.com/Denton-L/go-fish/pkg"
+	"github.com/Denton-L/go-fish/pkg/hands"
 )
 
 func getRemainingCards(state pkg.GameState) pkg.Deck {
 	deck := pkg.Deck{}
-	for rank := pkg.Rank(1); rank <= pkg.NumRanks; rank++ {
+	for rank := pkg.Rank(2); rank <= pkg.Ace; rank++ {
 	cardLoop:
 		for suit := pkg.Suit(1); suit <= pkg.NumSuits; suit++ {
 			card := pkg.Card{rank, suit}
@@ -45,10 +46,6 @@ func getRemainingCards(state pkg.GameState) pkg.Deck {
 	return deck
 }
 
-func determineResult(state pkg.GameState, deck pkg.Deck) result {
-	return loss
-}
-
 type result int
 
 const (
@@ -56,6 +53,62 @@ const (
 	win
 	draw
 )
+
+func determineResult(state pkg.GameState, deck pkg.Deck) result {
+	deckIndex := 0
+	drawCard := func() pkg.Card {
+		card := deck[deckIndex]
+		deckIndex++
+		return card
+
+	}
+
+	opponentHoles := make([]pkg.Hole, state.Opponents)
+	for i := range opponentHoles {
+		opponentHoles[i] = pkg.Hole{drawCard(), drawCard()}
+	}
+
+	switch state.Phase {
+	case pkg.PreFlop:
+		for i := range state.Flop {
+			state.Flop[i] = drawCard()
+		}
+		fallthrough
+	case pkg.Flop:
+		state.Turn = drawCard()
+		fallthrough
+	case pkg.Turn:
+		state.River = drawCard()
+	}
+
+	computeHand := func(hole pkg.Hole) hands.PokerHand {
+		cards := make([]pkg.Card, 7)
+		copy(cards[0:2], hole[:])
+		copy(cards[2:5], state.Flop[:])
+		cards[5] = state.Turn
+		cards[6] = state.River
+		return hands.ComputeHand(cards)
+	}
+
+	hand := computeHand(state.Hole)
+	worstResult := win
+
+compareOpponents:
+	for i := range opponentHoles {
+		opponentHand := computeHand(opponentHoles[i])
+		comparison := hand.CompareTo(opponentHand)
+
+		switch {
+		case comparison < 0:
+			worstResult = loss
+			break compareOpponents
+		case comparison == 0:
+			worstResult = draw
+		}
+	}
+
+	return worstResult
+}
 
 type OddsEngine struct {
 	Workers    int

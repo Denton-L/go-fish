@@ -14,11 +14,12 @@ const (
 )
 
 type GameState struct {
-	Phase Phase
-	Hole  Hole
-	Flop  [3]Card
-	Turn  Card
-	River Card
+	Phase     Phase
+	Hole      Hole
+	Flop      [3]Card
+	Turn      Card
+	River     Card
+	Opponents int
 }
 
 type Engine interface {
